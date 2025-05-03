@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ThreatGuard - Security Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <style>
+      :root {
+        --primary: #58a6ff;
+        --success: #2ea043;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --purple: #8b5cf6;
+        --dark: #0d1117;
+        --dark-light: #1c2128;
+        --dark-medium: #22272e;
+        --card-bg: #161b22;
+      }
+      
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        background-color: var(--dark);
+        color: #ffffff;
+        line-height: 1.6;
+      }
+
+      /* Navbar */
+      .navbar {
+        width: 100%;
+        background: var(--card-bg);
+        padding: 15px 0;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+      }
+
+      .navbar h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .nav-icon {
+        font-size: 22px;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 100px auto 40px;
+        padding: 20px;
+      }
+      
+      /* Tabs */
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid var(--dark-medium);
+        margin-bottom: 20px;
+      }
+      
+      .tab {
+        padding: 12px 24px;
+        background: transparent;
+        border: none;
+        color: #ccc;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-bottom: 3px solid transparent;
+        margin-right: 10px;
+      }
+      
+      .tab.active {
+        color: var(--primary);
+        border-bottom: 3px solid var(--primary);
+      }
+      
+      .tab:hover:not(.active) {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      
+      .tab-content {
+        display: none;
+      }
+      
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .scanner-card {
+        background: var(--dark-light);
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      
+      .scanner-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 20px rgba(0, 0, 0, 0.2);
+      }
+      
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 10px;
+      }
+      
+      .card-header i {
+        font-size: 24px;
+        color: var(--primary);
+      }
+      
+      .card-header h2 {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #e6e6e6;
+      }
+
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        border: 2px solid #30363d;
+        border-radius: 8px;
+        background-color: var(--dark-medium);
+        color: white;
+        transition: border-color 0.3s;
+      }
+      
+      input[type="text"]:focus,
+      input[type="file"]:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+      
+      input[type="file"] {
+        padding: 10px;
+        background-color: transparent;
+        border: 2px dashed #30363d;
+        cursor: pointer;
+      }
+      
+      input[type="file"]:hover {
+        border-color: var(--primary);
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+      }
+      
+      .file-input-label {
+        padding: 14px;
+        background-color: var(--dark-medium);
+        color: #fff;
+        border: 2px dashed #30363d;
+        border-radius: 8px;
+        display: block;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      .file-input-label:hover {
+        border-color: var(--primary);
+        background-color: rgba(88, 166, 255, 0.1);
+      }
+      
+      .file-input-label i {
+        margin-right: 8px;
+      }
+      
+      .file-input-wrapper input[type="file"] {
+        position: absolute;
+        font-size: 100px;
+        opacity: 0;
+        right: 0;
+        top: 0;
+        cursor: pointer;
+      }
+      
+      .file-name {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #ccc;
+      }
+
+      button {
+        background-color: var(--success);
+        color: white;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: none;
+      }
+
+      button:hover {
+        background-color: #36c14f;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 160, 67, 0.3);
+      }
+      
+      button:active {
+        transform: translateY(0);
+      }
+      
+      button:disabled {
+        background-color: #424a53;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Loading animation */
+      .scan-loader {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+      
+      .scan-progress {
+        width: 100%;
+        height: 6px;
+        background-color: #30363d;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 15px;
+      }
+      
+      .scan-bar {
+        height: 100%;
+        width: 0%;
+        background-color: var(--primary);
+        border-radius: 4px;
+        transition: width 0.5s;
+      }
+      
+      .scan-text {
+        font-size: 14px;
+        color: #ccc;
+      }
+
+      /* Result styling */
+      .result-container {
+        margin-top: 30px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+      
+      .result-container.active {
+        display: block;
+        animation: slideUp 0.5s;
+      }
+      
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      
+      .result-header {
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      .result-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 18px;
+      }
+      
+      .result-body {
+        padding: 20px;
+        background-color: var(--dark-medium);
+      }
+      
+      .result-item {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .result-label {
+        font-weight: 600;
+        min-width: 100px;
+      }
+      
+      .result-value {
+        word-break: break-all;
+      }
+      
+      /* Result status colors */
+      .benign .result-header {
+        background-color: rgba(46, 160, 67, 0.2);
+        color: #34d399;
+      }
+      
+      .phishing .result-header {
+        background-color: rgba(139, 92, 246, 0.2);
+        color: #8b5cf6;
+      }
+      
+      .malware .result-header {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      
+      .defacement .result-header {
+        background-color: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+      }
+      
+      .scam .result-header {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      
+      .legitimate .result-header {
+        background-color: rgba(46, 160, 67, 0.2);
+        color: #34d399;
+      }
+      
+      .unknown .result-header {
+        background-color: rgba(107, 114, 128, 0.2);
+        color: #9ca3af;
+      }
+      
+      /* Footer */
+      .footer {
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        border-top: 1px solid #30363d;
+        color: #8b949e;
+        font-size: 14px;
+      }
+      
+      /* Responsive styles */
+      @media (max-width: 768px) {
+        .container {
+          width: 95%;
+          padding: 10px;
+        }
+        
+        .scanner-card {
+          padding: 20px;
+        }
+        
+        .tab {
+          padding: 10px 15px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <h1><i class="fas fa-shield-alt nav-icon"></i> ThreatGuard</h1>
+    </div>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab active" onclick="openTab(event, 'url-tab')">
+          <i class="fas fa-link"></i> URL Scan
+        </button>
+        <button class="tab" onclick="openTab(event, 'file-tab')">
+          <i class="fas fa-file-alt"></i> File Scan
+        </button>
+      </div>
+      
+      <!-- URL Scanner Tab -->
+      <div id="url-tab" class="tab-content active">
+        <div class="scanner-card">
+          <div class="card-header">
+            <i class="fas fa-search"></i>
+            <h2>URL Threat Scanner</h2>
+          </div>
+          
+          <form id="urlForm" action="/predict" method="post">
+            <div class="form-group">
+              <label for="url">Enter the URL you want to analyze:</label>
+              <input 
+                type="text" 
+                id="url" 
+                name="url" 
+                placeholder="https://example.com" 
+                required 
+                pattern="https?://.+"
+                title="URL must start with http:// or https://"
+              />
+            </div>
+            
+            <button type="submit" id="urlSubmitBtn">
+              <i class="fas fa-radar"></i> Scan URL
+            </button>
+          </form>
+          
+          <div id="urlLoader" class="scan-loader">
+            <div class="scan-progress">
+              <div id="urlProgressBar" class="scan-bar"></div>
+            </div>
+            <p class="scan-text">Analyzing URL for potential threats...</p>
+          </div>
+          
+          {% if predicted_class %}
+          <div id="urlResult" class="result-container {{ predicted_class.lower() }} active">
+            <div class="result-header">
+              <div class="result-title">
+                {% if predicted_class.lower() == 'benign' %}
+                <i class="fas fa-check-circle"></i> Safe Website
+                {% elif predicted_class.lower() == 'phishing' %}
+                <i class="fas fa-fishing-hook"></i> Phishing Detected
+                {% elif predicted_class.lower() == 'malware' %}
+                <i class="fas fa-virus"></i> Malware Detected
+                {% elif predicted_class.lower() == 'defacement' %}
+                <i class="fas fa-exclamation-triangle"></i> Defacement Detected
+                {% else %}
+                <i class="fas fa-question-circle"></i> Unknown Threat
+                {% endif %}
+              </div>
+            </div>
+            <div class="result-body">
+              <div class="result-item">
+                <span class="result-label">URL:</span>
+                <span class="result-value">{{ input_url }}</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Classification:</span>
+                <span class="result-value">{{ predicted_class }}</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Meaning:</span>
+                <span class="result-value">
+                  {% if predicted_class.lower() == 'benign' %}
+                  This website appears to be safe and legitimate.
+                  {% elif predicted_class.lower() == 'phishing' %}
+                  This website may be trying to steal your personal information.
+                  {% elif predicted_class.lower() == 'malware' %}
+                  This website may contain or distribute malicious software.
+                  {% elif predicted_class.lower() == 'defacement' %}
+                  This website appears to have been compromised or hacked.
+                  {% else %}
+                  The threat level for this website could not be determined.
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- File Scanner Tab -->
+      <div id="file-tab" class="tab-content">
+        <div class="scanner-card">
+          <div class="card-header">
+            <i class="fas fa-file-shield"></i>
+            <h2>File Scanner</h2>
+          </div>
+          
+          <form id="fileForm" action="/scam/" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label>Upload a file to scan for threats:</label>
+              <div class="file-input-wrapper">
+                <label for="file" class="file-input-label">
+                  <i class="fas fa-upload"></i> Choose PDF or TXT file
+                </label>
+                <input 
+                  type="file" 
+                  id="file" 
+                  name="file" 
+                  accept=".pdf,.txt"
+                  required
+                  onchange="updateFileName(this)"
+                />
+              </div>
+              <div id="fileName" class="file-name"></div>
+            </div>
+            
+            <button type="submit" id="fileSubmitBtn">
+              <i class="fas fa-shield-check"></i> Analyze File
+            </button>
+          </form>
+          
+          <div id="fileLoader" class="scan-loader">
+            <div class="scan-progress">
+              <div id="fileProgressBar" class="scan-bar"></div>
+            </div>
+            <p class="scan-text">Scanning file for malicious content...</p>
+          </div>
+          
+          {% if message %}
+          <div id="fileResult" class="result-container {% if 'scam' in message.lower() or 'fake' in message.lower() %}scam{% elif 'legitimate' in message.lower() or 'real' in message.lower() %}legitimate{% else %}unknown{% endif %} active">
+            <div class="result-header">
+              <div class="result-title">
+                {% if 'scam' in message.lower() or 'fake' in message.lower() %}
+                <i class="fas fa-exclamation-triangle"></i> Potential Scam Detected
+                {% elif 'legitimate' in message.lower() or 'real' in message.lower() %}
+                <i class="fas fa-check-circle"></i> File Content Safe
+                {% else %}
+                <i class="fas fa-question-circle"></i> Analysis Result
+                {% endif %}
+              </div>
+            </div>
+            <div class="result-body">
+              <div class="result-item">
+                <span class="result-value">{{ message }}</span>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="footer">
+        <p>&copy; 2025 ThreatGuard - Security Scanner. All rights reserved.</p>
+      </div>
+    </div>
+
+    <script>
+      // Tab switching functionality
+      function openTab(evt, tabId) {
+        const tabcontent = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].classList.remove("active");
+        }
+        
+        const tablinks = document.getElementsByClassName("tab");
+        for (let i = 0; i < tablinks.length; i++) {
+          tablinks[i].classList.remove("active");
+        }
+        
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+      }
+      
+      // Update file name display
+      function updateFileName(input) {
+        const fileNameElement = document.getElementById("fileName");
+        if (input.files && input.files[0]) {
+          const fileName = input.files[0].name;
+          fileNameElement.textContent = fileName;
+        } else {
+          fileNameElement.textContent = "";
+        }
+      }
+      
+      // Form submission handlers
+      document.getElementById("urlForm").addEventListener("submit", function(e) {
+        const urlInput = document.getElementById("url").value.trim();
+        const urlSubmitBtn = document.getElementById("urlSubmitBtn");
+        const urlLoader = document.getElementById("urlLoader");
+        const urlProgressBar = document.getElementById("urlProgressBar");
+        
+        if (!urlInput.startsWith("http://") && !urlInput.startsWith("https://")) {
+          e.preventDefault();
+          alert("URL must start with http:// or https://");
+          return;
+        }
+        
+        urlSubmitBtn.disabled = true;
+        urlLoader.style.display = "block";
+        
+        // Animate progress bar
+        let width = 0;
+        const interval = setInterval(function() {
+          if (width >= 95) {
+            clearInterval(interval);
+          } else {
+            width += Math.random() * 15;
+            if (width > 95) width = 95;
+            urlProgressBar.style.width = width + "%";
+          }
+        }, 500);
+      });
+      
+      document.getElementById("fileForm").addEventListener("submit", function(e) {
+        const fileInput = document.getElementById("file");
+        const fileSubmitBtn = document.getElementById("fileSubmitBtn");
+        const fileLoader = document.getElementById("fileLoader");
+        const fileProgressBar = document.getElementById("fileProgressBar");
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+          e.preventDefault();
+          alert("Please select a file to scan.");
+          return;
+        }
+        
+        const fileName = fileInput.files[0].name.toLowerCase();
+        if (!fileName.endsWith('.pdf') && !fileName.endsWith('.txt')) {
+          e.preventDefault();
+          alert("Only PDF and TXT files are supported.");
+          return;
+        }
+        
+        fileSubmitBtn.disabled = true;
+        fileLoader.style.display = "block";
+        
+        // Animate progress bar
+        let width = 0;
+        const interval = setInterval(function() {
+          if (width >= 95) {
+            clearInterval(interval);
+          } else {
+            width += Math.random() * 15;
+            if (width > 95) width = 95;
+            fileProgressBar.style.width = width + "%";
+          }
+        }, 500);
+      });
+      
+      // Auto-switch to appropriate tab based on results
+      window.onload = function() {
+        {% if predicted_class %}
+          document.querySelector('.tab[onclick="openTab(event, \'url-tab\')"]').click();
+        {% elif message %}
+          document.querySelector('.tab[onclick="openTab(event, \'file-tab\')"]').click();
+        {% endif %}
+      };
+    </script>
+  </body>
+</html>
